@@ -100,93 +100,84 @@ int main() {
 
 // ---------- EXPERIMENT 3: Columnar Transposition Cipher ----------
 #include <iostream>
-#include <string>
+#include <vector>
 #include <algorithm>
 using namespace std;
+string encrypt(const string& plaintext, const string& key) {
+ int keyLen = key.length();
+ int textLen = plaintext.length();
+ int rows = (textLen + keyLen - 1) / keyLen + 1;
+ vector<string> grid(rows, string(keyLen, ' '));
 
-void fill_grid(char grid[][100], string text, string key, int& rows) {
-    int key_len = key.length();
-    int len = text.length();
-    rows = (len + key_len - 1) / key_len + 1;
+ // First row as key
+ grid[0] = key;
 
-    for (int i = 0; i < key_len; i++)
-        grid[0][i] = key[i];
+ int index = 0;
+ for (int r = 1; r < rows; r++) {
+ for (int c = 0; c < keyLen && index < textLen; c++, index++) {
+ grid[r][c] = plaintext[index];
+ }
+ }
 
-    int idx = 0;
-    for (int r = 1; r < rows; r++) {
-        for (int c = 0; c < key_len; c++) {
-            if (idx < len)
-                grid[r][c] = text[idx++];
-            else
-                grid[r][c] = ' ';
-        }
-    }
+ cout << "Grid:\n";
+ for (auto row : grid) {
+ cout << row << endl;
+ }
+string demo = key;
+ string sortedKey = key;
+ sort(sortedKey.begin(), sortedKey.end());
+ string ciphertext;
+    
+ for (char ch : sortedKey) {
+ int col = demo.find(ch);
+ demo[col] = '*';
+ for (int r = 1; r < rows; r++) {
+ ciphertext += grid[r][col];
+ }
+ }
+ return ciphertext;
 }
+string decrypt(const string& ciphertext, const string& key) {
+ int keyLen = key.length();
+ int textLen = ciphertext.length();
+ int rows = (textLen + keyLen - 1) / keyLen + 1;
+ vector<string> grid(rows, string(keyLen, ' '));
 
-string encrypt(string text, string key) {
-    char grid[100][100];
-    int rows;
-    fill_grid(grid, text, key, rows);
+ // First row as key
+ grid[0] = key;
+string demo = key;
+ string sortedKey = key;
+ sort(sortedKey.begin(), sortedKey.end());
+ int index = 0;
 
-    cout << "\nGrid used for encryption:" << endl;
-    for (int r = 0; r < rows; r++) {
-        for (int c = 0; c < key.length(); c++) {
-            cout << grid[r][c] << ' ';
-        }
-        cout << endl;
-    }
+ for (char ch : sortedKey) {
+ int col = demo.find(ch);
+ demo[col] = '*';
+ for (int r = 1; r < rows; r++) {
+ grid[r][col] = ciphertext[index++];
+ }
+ }
 
-    string sorted_key = key;
-    sort(sorted_key.begin(), sorted_key.end());
-    string cipher = "";
-
-    for (int i = 0; i < key.length(); i++) {
-        int col = key.find(sorted_key[i]);
-        for (int r = 1; r < rows; r++) {
-            cipher += grid[r][col];
-        }
-    }
-    return cipher;
+ string plaintext;
+ for (int r = 1; r < rows; r++) {
+ for (int c = 0; c < keyLen; c++) {
+ if (grid[r][c] != ' ') plaintext += grid[r][c];
+ }
+ }
+ return plaintext;
 }
-
-string decrypt(string cipher, string key) {
-    char grid[100][100];
-    int key_len = key.length();
-    int rows = (cipher.length() + key_len - 1) / key_len + 1;
-
-    for (int i = 0; i < key_len; i++)
-        grid[0][i] = key[i];
-
-    string sorted_key = key;
-    sort(sorted_key.begin(), sorted_key.end());
-    int idx = 0;
-    for (int i = 0; i < key_len; i++) {
-        int col = key.find(sorted_key[i]);
-        for (int r = 1; r < rows; r++) {
-            if (idx < cipher.length())
-                grid[r][col] = cipher[idx++];
-            else
-                grid[r][col] = ' ';
-        }
-    }
-
-    string plain = "";
-    for (int r = 1; r < rows; r++) {
-        for (int c = 0; c < key_len; c++) {
-            if (grid[r][c] != ' ')
-                plain += grid[r][c];
-        }
-    }
-    return plain;
-}
-
 int main() {
-    string key = "MEGADUCK";
-    string text = "Pleasetransferonemilliondollarstomyswissbankaccountsixtwotwofour";
-    cout << "Original Plaintext: " << text << endl;
-    string cipher = encrypt(text, key);
-    cout << "Ciphertext: " << cipher << endl;
-    string decrypted = decrypt(cipher, key);
-    cout << "Decrypted Text: " << decrypted << endl;
-    return 0;
+ string key = "NBAISOKR";
+ string plaintext =
+"Pleasetransferonemilliondollarstomyswissbankaccountsixtwotwofour";
+
+ cout << "Plaintext: " << plaintext << endl;
+
+ string ciphertext = encrypt(plaintext, key);
+ cout << "Encrypted Text: " << ciphertext << endl;
+
+ string decryptedText = decrypt(ciphertext, key);
+ cout << "Decrypted Text: " << decryptedText << endl;
+
+ return 0;
 }
